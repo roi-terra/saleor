@@ -2,10 +2,15 @@ from django.db.models import Exists, OuterRef, Sum
 
 from ...attribute import models as attribute_models
 from ...channel.models import Channel
+from ...core.exceptions import PermissionDenied
 from ...order import OrderStatus
 from ...order.models import Order
+from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import ProductPermissions
-from ...permission.utils import has_one_of_permissions
+from ...permission.utils import (
+    has_one_of_permissions,
+    one_of_permissions_or_auth_filter_required,
+)
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..attribute.dataloaders.assigned_attributes import (
@@ -147,7 +152,22 @@ def resolve_product_type_by_id(info, id):
     )
 
 
-def resolve_product_types(info: ResolveInfo):
+PRODUCT_TYPE_TAX_CLASS_FILTER_PERMISSIONS = [
+    AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+    AuthorizationFilters.AUTHENTICATED_APP,
+]
+
+
+def resolve_product_types(info: ResolveInfo, *, filter_by_tax_classes: bool = False):
+    """Return product types.
+
+    Filtering by tax classes is limited to staff users and apps, the same as
+    the `ProductType.taxClass` field, so it can't reveal tax class assignments.
+    """
+    if filter_by_tax_classes and not one_of_permissions_or_auth_filter_required(
+        info.context, PRODUCT_TYPE_TAX_CLASS_FILTER_PERMISSIONS
+    ):
+        raise PermissionDenied(permissions=PRODUCT_TYPE_TAX_CLASS_FILTER_PERMISSIONS)
     return models.ProductType.objects.using(
         get_database_connection_name(info.context)
     ).all()

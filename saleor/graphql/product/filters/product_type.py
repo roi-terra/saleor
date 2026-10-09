@@ -5,6 +5,7 @@ from django.db.models import Q
 from saleor.graphql.warehouse.types import DEPRECATED_IN_3X_INPUT
 
 from ....product.models import ProductType
+from ...core.descriptions import ADDED_IN_324
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     EnumFilter,
@@ -13,6 +14,7 @@ from ...core.filters import (
     ListObjectTypeFilter,
     MetadataFilterBase,
 )
+from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.filters import filter_slug_list
 from ..enums import (
     ProductTypeConfigurable,
@@ -41,6 +43,13 @@ def filter_product_type_kind(qs, _, value):
     return qs
 
 
+def filter_product_type_tax_classes(qs, _, value):
+    if not value:
+        return qs
+    _, tax_class_pks = resolve_global_ids_to_primary_keys(value, "TaxClass")
+    return qs.filter(tax_class_id__in=tax_class_pks)
+
+
 class ProductTypeFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="filter_product_type_searchable")
 
@@ -58,6 +67,13 @@ class ProductTypeFilter(MetadataFilterBase):
     kind = EnumFilter(input_class=ProductTypeKindEnum, method=filter_product_type_kind)
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
+    tax_classes = GlobalIDMultipleChoiceFilter(
+        method=filter_product_type_tax_classes,
+        help_text=(
+            "Filter by the tax classes assigned to product types. "
+            "Requires an authenticated staff user or app." + ADDED_IN_324
+        ),
+    )
 
     class Meta:
         model = ProductType
