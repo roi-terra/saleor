@@ -1874,6 +1874,77 @@ def test_product_filter_by_updated_at_empty_values(
     assert len(products) == 0
 
 
+@pytest.mark.parametrize(
+    ("_case", "range_input", "expected_indexes"),
+    [
+        ("gte_only", {"gte": "2026-02-01T00:00:00+00:00"}, [1, 2]),
+        ("lte_only", {"lte": "2026-02-01T00:00:00+00:00"}, [0, 1]),
+        (
+            "gte_and_lte",
+            {
+                "gte": "2026-01-15T00:00:00+00:00",
+                "lte": "2026-02-15T00:00:00+00:00",
+            },
+            [1],
+        ),
+    ],
+)
+def test_product_filter_by_created_at(
+    _case, range_input, expected_indexes, api_client, product_list, channel_USD
+):
+    # given
+    created_at_values = [
+        datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC),
+        datetime.datetime(2026, 2, 1, tzinfo=datetime.UTC),
+        datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC),
+    ]
+    for product, created_at in zip(product_list, created_at_values, strict=True):
+        Product.objects.filter(pk=product.pk).update(created_at=created_at)
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"createdAt": {"range": range_input}},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == len(expected_indexes)
+    assert {node["node"]["slug"] for node in products} == {
+        product_list[index].slug for index in expected_indexes
+    }
+
+
+@pytest.mark.parametrize(
+    ("_case", "value"),
+    [
+        ("gte_null", {"range": {"gte": None}}),
+        ("lte_null", {"range": {"lte": None}}),
+        ("gte_and_lte_null", {"range": {"gte": None, "lte": None}}),
+        ("null", None),
+    ],
+)
+def test_product_filter_by_created_at_empty_values(
+    _case, value, api_client, product_list, channel_USD
+):
+    # given
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"createdAt": value},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 0
+
+
 def test_product_filter_with_operators(
     api_client, product_list, channel_USD, product_type_list
 ):
