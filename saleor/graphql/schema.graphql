@@ -4718,6 +4718,13 @@ input ProductWhereInput @doc(category: "Products") {
   """Filter by when was the most recent update."""
   updatedAt: DateTimeFilterInput
 
+  """
+  Filter by when the product was created.
+  
+  Added in Saleor 3.24.
+  """
+  createdAt: DateTimeFilterInput
+
   """List of conditions that must be met."""
   AND: [ProductWhereInput!]
 

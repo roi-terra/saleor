@@ -11,6 +11,7 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ...channel.filters import get_channel_slug_from_filter_data
+from ...core.descriptions import ADDED_IN_324
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     BooleanWhereFilter,
@@ -65,6 +66,7 @@ from .product_helpers import (
     filter_stocks,
     filter_variant_price,
     where_filter_by_categories,
+    where_filter_created_at_range,
     where_filter_gift_card,
     where_filter_has_category,
     where_filter_products_channel_field_from_date,
@@ -301,6 +303,11 @@ class ProductWhere(MetadataWhereFilterBase):
         input_class=DateTimeFilterInput,
         method=where_filter_updated_at_range,
         help_text="Filter by when was the most recent update.",
+    )
+    created_at = ObjectTypeWhereFilter(
+        input_class=DateTimeFilterInput,
+        method=where_filter_created_at_range,
+        help_text="Filter by when the product was created." + ADDED_IN_324,
     )
 
     class Meta:

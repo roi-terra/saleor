@@ -606,6 +606,12 @@ def where_filter_updated_at_range(qs, _, value):
     return filter_where_range_field_with_conditions(qs, "updated_at", value)
 
 
+def where_filter_created_at_range(qs, _, value):
+    if value is None:
+        return qs.none()
+    return filter_where_range_field_with_conditions(qs, "created_at", value)
+
+
 def where_filter_by_categories(qs, value):
     """Filter products by categories and subcategories of provided categories."""
     if not value:
