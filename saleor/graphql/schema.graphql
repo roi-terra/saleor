@@ -15650,6 +15650,13 @@ input ProductTypeFilterInput @doc(category: "Products") {
   kind: ProductTypeKindEnum
   ids: [ID!]
   slugs: [String!]
+
+  """
+  Filter by the tax classes assigned to product types. Requires an authenticated staff user or app.
+  
+  Added in Saleor 3.24.
+  """
+  taxClasses: [ID!]
 }
 
 enum ProductTypeConfigurable @doc(category: "Products") {

@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
 - Added the `createdAt` filter to the `products` query `where` input, allowing products to be filtered by their creation date range.
+- Added the `taxClasses` filter to the `productTypes` query, allowing product types to be filtered by their assigned tax classes. The filter is available only to staff users and apps.
 - `lines` input on the `checkoutCreate` mutation is no longer required. When omitted, a checkout with no lines is created.
 - Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.
 - Removed the deprecated `variant` field from the `Product` type. Use the top-level `variant` query instead.

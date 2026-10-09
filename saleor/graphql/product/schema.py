@@ -516,7 +516,11 @@ class ProductQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_product_types(_root, info: ResolveInfo, **kwargs):
-        qs = resolve_product_types(info)
+        filter_input = kwargs.get("filter") or {}
+        qs = resolve_product_types(
+            info,
+            filter_by_tax_classes=filter_input.get("tax_classes") is not None,
+        )
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
